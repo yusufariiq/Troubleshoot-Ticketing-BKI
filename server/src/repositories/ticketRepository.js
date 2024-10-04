@@ -1,11 +1,73 @@
 const pool = require('../config/db');
 
 class TicketRepository {
+    async setupDatabase() {
+        const primaryKey = await this.checkPrimaryKey();
+        if (primaryKey.length > 0) {
+            console.log('Primary key already exists:', primaryKey[0].constraint_name);
+        } else {
+            console.log('Warning: No primary key found on ticket_troubleshoot table');
+        }
+        
+        await this.setupForeignKey();
+        console.log('Database setup complete');
+    }
+    
     async getAllTickets() {
-        const result = await pool.query(
-            'SELECT * FROM ticket_troubleshoot ORDER BY date_created DESC'
-        );
+        try {
+            const result = await pool.query(
+                'SELECT ticket_id, title, description, priority, status, reporter, assignee, ' +
+                'date_created, last_updated, category, attachment_id ' +
+                'FROM ticket_troubleshoot ORDER BY date_created DESC'
+            );
+            return result.rows;
+        } catch (error) {
+            console.error('Database error in getAllTickets:', error);
+            throw error;
+        }
+    }
+    
+    async checkPrimaryKey() {
+        const result = await pool.query(`
+            SELECT constraint_name, column_name 
+            FROM information_schema.key_column_usage 
+            WHERE table_name = 'ticket_troubleshoot' AND constraint_name LIKE '%pkey';
+        `);
+        console.log('Existing primary key:', result.rows);
         return result.rows;
+    }
+
+    async checkForeignKey() {
+        const result = await pool.query(`
+            SELECT constraint_name, column_name 
+            FROM information_schema.key_column_usage 
+            WHERE table_name = 'ticket_troubleshoot' AND constraint_name = 'fk_ticket_attachment';
+        `);
+        console.log('Existing foreign key:', result.rows);
+        return result.rows;
+    }
+    
+    async setupForeignKey() {
+        try {
+            const existingForeignKey = await this.checkForeignKey();
+            if (existingForeignKey.length === 0) {
+                await pool.query(`
+                    CREATE TABLE IF NOT EXISTS attachments (
+                        id SERIAL PRIMARY KEY
+                    );
+    
+                    ALTER TABLE ticket_troubleshoot
+                    ADD CONSTRAINT fk_ticket_attachment
+                    FOREIGN KEY (attachment_id) REFERENCES attachments(id);
+                `);
+                console.log('Foreign key constraint added successfully');
+            } else {
+                console.log('Foreign key constraint already exists');
+            }
+        } catch (error) {
+            console.error('Error setting up foreign key:', error);
+            throw error;
+        }
     }
 
     async getTicketById(id) {

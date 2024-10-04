@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const ticketRoutes = require("./routes/ticketRoutes");
+const ticketRoutes = require("./routes/ticketRoutes"); // Remove 'src' from the path
 
 const app = express();
 

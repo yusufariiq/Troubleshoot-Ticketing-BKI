@@ -6,7 +6,8 @@ class TicketController {
             const tickets = await ticketService.getAllTickets();
             res.json(tickets);
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            console.error('Error in getAllTickets:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     }
 
