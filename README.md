@@ -55,11 +55,11 @@ CREATE TABLE ticket_troubleshoot (
 Create a `.env` file in the root directory with the following variables:
 
 ```
-PORT=5432
-PG_DB_NAME=bki
-PG_PASSWORD=1234
-PG_USER=postgres
-PG_HOST=localhost
+PORT=...
+PG_DB_NAME=...
+PG_PASSWORD=...
+PG_USER=...
+PG_HOST=...
 ```
 
 ## Installation
