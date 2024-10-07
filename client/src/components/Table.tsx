@@ -1,67 +1,56 @@
 import { 
     DataGrid, 
     GridColDef, 
-    GridToolbar, 
     GridToolbarContainer,
     GridToolbarColumnsButton,
     GridToolbarFilterButton,
     GridToolbarExport,
     GridToolbarDensitySelector
 } from '@mui/x-data-grid';
+
 import { 
     Box, 
     Button, 
     Container, 
-    CardContent,
-    CircularProgress,
-    Dialog, 
-    DialogActions, 
-    DialogContent, 
-    DialogTitle, 
-    MenuItem, 
     Paper, 
-    Select, 
-    Tabs, 
-    Tab, 
-    TextField, 
     Typography, 
-    SelectChangeEvent
 } from '@mui/material';
+
 import { useState, useEffect } from 'react';
 
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+
 import axios from 'axios';
-
-interface Troubleshoot {
-    ticket_id: number;
-    title: string;
-    description: string;
-    priority: 'Low' | 'Medium' | 'High' | 'Critical';
-    status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
-    reporter: string;
-    assignee: string;
-    date_created: string;
-    last_updated: string;
-    category: string;
-    attachment_id: number | null;
-}
-
-interface Attachment {
-    id?: number;
-    ticket_id: number;
-    file_name: string;
-    file_data: string;
-    file_type: string;
-    uploaded_at: string;
-}
-
+import Troubleshoot from '../interface/Troubleshoot';
+import Modal from './Modal';
 
 export default function Table() {
     const [data, setData] = useState<Troubleshoot[]>([]);
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = () => setOpen(true)
+    const handleClose = () => setOpen(false)
 
     const columns: GridColDef[] = [
-        { field: 'ticket_id', headerName: 'ID', width:120 },
-        { field: 'title', headerName: 'Judul', width:120 },
-        { field: 'description', headerName: 'Deskripsi', width:120 },
+        { field: 'ticket_id', headerName: 'ID', width:50 },
+        {
+            field: 'actions',
+            headerName: 'Aksi',
+            width: 200,
+            renderCell: () => (
+              <Box>
+                <Button>
+                    <EditIcon />
+                </Button>
+                <Button>
+                    <DeleteForeverIcon />
+                </Button>
+              </Box>
+            ),
+          },
+        { field: 'title', headerName: 'Judul', width:200 },
+        { field: 'description', headerName: 'Deskripsi', width:400 },
         { field: 'priority', headerName: 'Level Prioritas', width:120 },
         { field: 'status', headerName: 'Status', width:120 },
         { field: 'reporter', headerName: 'Pelapor', width:120 },
@@ -70,26 +59,17 @@ export default function Table() {
             field: 'date_created', 
             headerName: 'Tanggal dibuat', 
             width: 180,
-            valueFormatter: (params) => {
-                return params.value ? new Date(params.value).toLocaleString() : '';
-            }
         },
         { 
             field: 'last_updated', 
             headerName: 'Update terbaru', 
             width: 180,
-            valueFormatter: (params) => {
-                return params.value ? new Date(params.value).toLocaleString() : '';
-            }
         },
         { field: 'category', headerName: 'Kategori', width: 130 },
         { 
             field: 'attachment_id', 
             headerName: 'Lampiran', 
             width: 100,
-            valueFormatter: (params) => {
-                return params.value != null ? 'Yes' : 'No';
-            }
         },
     ];
 
@@ -116,6 +96,11 @@ export default function Table() {
         fetchData();
     }, []);
 
+    const handleSubmit = (values: any) => {
+        console.log(values);
+        // Lakukan sesuatu dengan data form, seperti mengirim ke server
+      };
+
     function CustomToolbar() {
         return (
             <GridToolbarContainer sx={{p:1}}>
@@ -138,29 +123,40 @@ export default function Table() {
                 Troubleshoot
                 </Typography>
             </Box>
-            <Paper sx={{padding:'20px'}} >
+            <Paper variant="outlined" sx={{padding:'20px'}} >
                 <Box sx={{marginBottom:1}}> 
-                        <Button variant="contained" sx={{paddingInline:3, bgcolor:'rgb(24, 144, 255)'}} >Add</Button>
+                <Button
+                variant="contained"
+                sx={{ textTransform: 'none' }}
+                onClick={handleOpen}
+                >
+                Add
+                </Button>
+                <Modal 
+                    open={open}
+                    onClose={handleClose}
+                    onSubmit={handleSubmit} 
+                />
                 </Box>
-                        <DataGrid
-                            rows={data}
-                            columns={columns}
-                            getRowId={(row) => row.ticket_id}
-                            sx={{
-                                border:'none',
-                                bgcolor: '#fff',
-                                '& .MuiDataGrid-cell': {
-                                bgcolor: '#fff',
-                                border:'none',
-                                },
-                                '& .MuiDataGrid-columnHeaders': {
-                                bgcolor: '#f5f5f5',
-                                },
-                            }}
-                            slots={{
-                                toolbar: CustomToolbar
-                            }}                
-                        />
+                    <DataGrid
+                    rows={data}
+                    columns={columns}
+                    getRowId={(row) => row.ticket_id}
+                    sx={{
+                        border:'none',
+                        bgcolor: '#fff',
+                        '& .MuiDataGrid-cell': {
+                            bgcolor: '#fff',
+                            border:'none',
+                            },
+                        '& .MuiDataGrid-columnHeaders': {
+                            bgcolor: '#f5f5f5',
+                            },
+                        }}
+                    slots={{
+                        toolbar: CustomToolbar
+                    }}                
+                    />
             </Paper>
         </Container>
         )
