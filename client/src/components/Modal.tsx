@@ -13,11 +13,11 @@ import {
     Select,
     MenuItem,
     FormControl,
-    InputLabel,
     Box,
     IconButton,
   } from '@mui/material';
-import { CloudUpload as CloudUploadIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import Grid from '@mui/material/Grid';
+import { CloudUpload as CloudUploadIcon, Delete as DeleteIcon} from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -149,111 +149,135 @@ const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit }) => {
           return (
               <Form>
                 <DialogContent>
-                  <Field
-                    as={TextField}
-                    name="title"
-                    label="Title"
-                    fullWidth
-                    margin="normal"
-                    error={touched.title && errors.title}
-                    helperText={touched.title && errors.title}
-                  />
-                  <Field
-                    as={TextField}
-                    name="description"
-                    label="Description"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    margin="normal"
-                    error={touched.description && errors.description}
-                    helperText={touched.description && errors.description}
-                  />
-                  <FormControl fullWidth margin="normal">
-                    <InputLabel>Priority</InputLabel>
-                    <Field
-                      as={Select}
-                      name="priority"
-                      label="Priority"
-                    >
-                      <MenuItem value="Low">Low</MenuItem>
-                      <MenuItem value="Medium">Medium</MenuItem>
-                      <MenuItem value="High">High</MenuItem>
-                      <MenuItem value="Critical">Critical</MenuItem>
-                    </Field>
-                  </FormControl>
-                  <FormControl fullWidth margin="normal">
-                    <InputLabel>Status</InputLabel>
-                    <Field
-                      as={Select}
-                      name="status"
-                      label="Status"
-                    >
-                      <MenuItem value="Open">Open</MenuItem>
-                      <MenuItem value="In Progress">In Progress</MenuItem>
-                      <MenuItem value="Resolved">Resolved</MenuItem>
-                      <MenuItem value="Closed">Closed</MenuItem>
-                    </Field>
-                  </FormControl>
-                  <Field
-                    as={TextField}
-                    name="reporter"
-                    label="Reporter"
-                    fullWidth
-                    margin="normal"
-                    error={touched.reporter && errors.reporter}
-                    helperText={touched.reporter && errors.reporter}
-                  />
-                  <Field
-                    as={TextField}
-                    name="assignee"
-                    label="Assignee"
-                    fullWidth
-                    margin="normal"
-                    error={touched.assignee && errors.assignee}
-                    helperText={touched.assignee && errors.assignee}
-                  />
-                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <Box sx={{display:'flex', justifyContent:'space-between' }}>
+                  <Grid container spacing={3}>  
+                    <Grid item xs={12}>
+                      <label>Judul</label>
                       <Field
-                        name="date_created"
-                        component={DatePicker}
-                        label="Date Created"
-                        inputFormat="MM/dd/yyyy"
-                        renderInput={(params: any) => <TextField {...params} fullWidth margin="normal" />}
+                        as={TextField}
+                        name="title"
+                        placeholder='Judul'
+                        fullWidth
+                        error={touched.title && errors.title}
+                        helperText={touched.title && errors.title}
                       />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <label>Deskripsi</label>
                       <Field
-                        name="last_updated"
-                        component={DatePicker}
-                        label="Last Updated"
-                        inputFormat="MM/dd/yyyy"
-                        renderInput={(params: any) => <TextField {...params} fullWidth margin="normal" />}
+                      as={TextField}
+                      name="description"
+                      placeholder='Deskripsi'
+                      fullWidth
+                      multiline
+                      rows={4}
+                      error={touched.description && errors.description}
+                      helperText={touched.description && errors.description}
                       />
-                    </Box>
-                  </LocalizationProvider>
-                  <Field
-                    as={TextField}
-                    name="category"
-                    label="Category"
-                    fullWidth
-                    margin="normal"
-                    error={touched.category && errors.category}
-                    helperText={touched.category && errors.category}
-                  />
-                  <Box 
-                    {...getRootProps()}
-                    sx={{
-                      border: '2px dashed #ccc',
-                      borderRadius: 2,
-                      padding: 3,
-                      marginTop: 2,
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      backgroundColor: isDragActive ? '#f0f0f0' : 'transparent',
-                    }}
-                  >                 
-                    <input {...getInputProps()} />
-                     { thumbnail ? (
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <label>Priority</label>
+                        <Field
+                          as={Select}
+                          name="priority"
+                          label="Priority"
+                        >
+                          <MenuItem value="Low">Low</MenuItem>
+                          <MenuItem value="Medium">Medium</MenuItem>
+                          <MenuItem value="High">High</MenuItem>
+                          <MenuItem value="Critical">Critical</MenuItem>
+                        </Field>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <label>Status</label>
+                        <Field
+                          as={Select}
+                          name="status"
+                          label="Status"
+                        >
+                          <MenuItem value="Open">Open</MenuItem>
+                          <MenuItem value="In Progress">In Progress</MenuItem>
+                          <MenuItem value="Resolved">Resolved</MenuItem>
+                          <MenuItem value="Closed">Closed</MenuItem>
+                        </Field>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <label>Pelapor</label>
+                      <Field
+                      as={TextField}
+                      name="reporter"
+                      placeholder='Pelapor'
+                      fullWidth
+                      error={touched.reporter && errors.reporter}
+                      helperText={touched.reporter && errors.reporter}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <label>Penanggung Jawab</label>
+                      <Field
+                      as={TextField}
+                      name="assignee"
+                      placeholder='Penanggung Jawab'
+                      fullWidth
+                      error={touched.assignee && errors.assignee}
+                      helperText={touched.assignee && errors.assignee}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <label>Tanggal dibuat</label>
+                            <Field
+                              name="date_created"
+                              component={DatePicker}
+                              inputFormat="MM/dd/yyyy"
+                              renderInput={(params: any) => <TextField {...params} fullWidth />}
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <label>Updater terakhir</label>
+                            <Field
+                              name="last_updated"
+                              component={DatePicker}
+                              inputFormat="MM/dd/yyyy"
+                              renderInput={(params: any) => <TextField {...params} fullWidth />}
+                            />
+                          </Grid>
+                        </Grid>
+                      </LocalizationProvider>
+                    </Grid>
+                  
+                  <Grid item xs={12}>
+                    <label>Kategori</label>
+                    <Field
+                        as={TextField}
+                        name="category"
+                        placeholder='Kategori'
+                        fullWidth
+                        error={touched.category && errors.category}
+                        helperText={touched.category && errors.category}
+                      />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Box 
+                      {...getRootProps()}
+                      sx={{
+                        border: '2px dashed #ccc',
+                        borderRadius: 2,
+                        padding: 3,
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        backgroundColor: isDragActive ? '#f0f0f0' : 'transparent',
+                      }}
+                    >                 
+                      <input {...getInputProps()} />
+                      { thumbnail ? (
                         <Box>
                           <img src={thumbnail} alt="File thumbnail" style={{ maxWidth: '100%', maxHeight: '200px' }} />
                           <Box display="flex" justifyContent="center" alignItems="center" mt={1}>
@@ -272,23 +296,25 @@ const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit }) => {
                           </Box>
                         </Box>
                       ) : (
-                      <>
-                        <label htmlFor="raised-button-file">
-                        <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', marginBottom: 1 }} />
-                        <Typography variant="body1" gutterBottom>
-                          Drag & Drop or Select file
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          Drop files here or click <span style={{ color: '#1976d2', cursor: 'pointer' }}>browse</span> through your device
-                        </Typography>
-                        </label>
-                      </>
-                     )}
-                  </Box>
+                        <>
+                          <label htmlFor="raised-button-file">
+                            <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', marginBottom: 1 }} />
+                            <Typography variant="body1" gutterBottom>
+                              Drag & Drop or Select file
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              Drop files here or click <span style={{ color: '#1976d2', cursor: 'pointer' }}>browse</span> through your device
+                            </Typography>
+                          </label>
+                        </>
+                      )}
+                    </Box>
+                  </Grid>
+                </Grid> 
                 </DialogContent>
                 <DialogActions>
                   <Button onClick={onClose}>Cancel</Button>
-                  <Button type="submit" variant="contained" color="primary">
+                  <Button type="submit" color="primary">
                     Submit
                   </Button>
                 </DialogActions>
