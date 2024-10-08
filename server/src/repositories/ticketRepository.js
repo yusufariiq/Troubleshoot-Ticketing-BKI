@@ -81,11 +81,19 @@ class TicketRepository {
     async createTicket(ticket) {
         const result = await pool.query(
             `INSERT INTO ticket_troubleshoot 
-            (title, description, priority, status, reporter, assignee, category) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            (title, description, priority, status, reporter, assignee, category, attachment_id) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING *`,
-            [ticket.title, ticket.description, ticket.priority, 
-             ticket.status, ticket.reporter, ticket.assignee, ticket.category]
+            [
+                ticket.title, 
+                ticket.description, 
+                ticket.priority, 
+                ticket.status, 
+                ticket.reporter, 
+                ticket.assignee, 
+                ticket.category,
+                ticket.attachment_id || null
+            ]
         );
         return result.rows[0];
     }
@@ -93,20 +101,81 @@ class TicketRepository {
     async updateTicket(id, ticket) {
         const result = await pool.query(
             `UPDATE ticket_troubleshoot 
-            SET title = $1, description = $2, priority = $3, 
-                status = $4, assignee = $5, category = $6, 
+            SET title = $1, 
+                description = $2, 
+                priority = $3, 
+                status = $4, 
+                assignee = $5, 
+                category = $6, 
+                attachment_id = $7,
                 last_updated = CURRENT_TIMESTAMP 
-            WHERE ticket_id = $7 
+            WHERE ticket_id = $8 
             RETURNING *`,
-            [ticket.title, ticket.description, ticket.priority, 
-             ticket.status, ticket.assignee, ticket.category, id]
+            [
+                ticket.title, 
+                ticket.description, 
+                ticket.priority, 
+                ticket.status, 
+                ticket.assignee, 
+                ticket.category,
+                ticket.attachment_id || null,  // Ensure it's null if not provided
+                id
+            ]
+        );
+        return result.rows[0];
+    }
+    async deleteTicket(id) {
+        const result = await pool.query(
+            'DELETE FROM ticket_troubleshoot WHERE ticket_id = $1 RETURNING *',
+            [id]
         );
         return result.rows[0];
     }
 
-    async deleteTicket(id) {
+    async getAttachment(id) {
         const result = await pool.query(
-            'DELETE FROM ticket_troubleshoot WHERE ticket_id = $1 RETURNING *',
+            'SELECT * FROM ticket_attachments WHERE id = $1',
+            [id]
+        );
+        return result.rows[0];
+    }
+
+    async createAttachment(attachmentData) {
+        const result = await pool.query(
+            `INSERT INTO ticket_attachments 
+            (file_name, file_path, file_type, uploaded_at) 
+            VALUES ($1, $2, $3, $4) 
+            RETURNING *`,
+            [
+                attachmentData.file_name,
+                attachmentData.file_path,
+                attachmentData.file_type,
+                attachmentData.uploaded_at
+            ]
+        );
+        return result.rows[0];
+    }
+
+    async updateAttachment(id, attachmentData) {
+        const result = await pool.query(
+            `UPDATE ticket_attachments 
+            SET file_name = $1, file_path = $2, file_type = $3, uploaded_at = $4
+            WHERE id = $5 
+            RETURNING *`,
+            [
+                attachmentData.file_name,
+                attachmentData.file_path,
+                attachmentData.file_type,
+                attachmentData.uploaded_at,
+                id
+            ]
+        );
+        return result.rows[0];
+    }
+
+    async deleteAttachment(id) {
+        const result = await pool.query(
+            'DELETE FROM ticket_attachments WHERE id = $1 RETURNING *',
             [id]
         );
         return result.rows[0];

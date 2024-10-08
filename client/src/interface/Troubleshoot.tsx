@@ -6,8 +6,8 @@ export default interface Troubleshoot {
     status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
     reporter: string;
     assignee: string;
-    date_created: string;
-    last_updated: string;
+    date_created: string | Date;
+    last_updated: string | Date;
     category: string;
     attachment_id: File | null;
 }

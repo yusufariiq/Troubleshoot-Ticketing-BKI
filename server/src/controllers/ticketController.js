@@ -25,16 +25,58 @@ class TicketController {
 
     async createTicket(req, res) {
         try {
-            const newTicket = await ticketService.createTicket(req.body);
+            const ticketData = req.body;
+            const file = req.file;
+
+            let attachmentId = null;
+            if (file) {
+                const attachmentData = {
+                    file_name: file.originalname,
+                    file_path: file.path,
+                    file_type: file.mimetype,
+                    uploaded_at: new Date()
+                };
+                const attachment = await ticketService.createAttachment(attachmentData);
+                attachmentId = attachment.id;
+            }
+
+            const ticketWithAttachment = {
+                ...ticketData,
+                attachment_id: attachmentId
+            };
+
+            const newTicket = await ticketService.createTicket(ticketWithAttachment);
             res.status(201).json(newTicket);
         } catch (error) {
+            console.error('Error in createTicket:', error);
             res.status(500).json({ error: error.message });
         }
     }
 
     async updateTicket(req, res) {
         try {
-            const updatedTicket = await ticketService.updateTicket(req.params.id, req.body);
+            const ticketData = req.body;
+            const file = req.file;
+            const ticketId = req.params.id;
+
+            if (file) {
+                const attachmentData = {
+                    file_name: file.originalname,
+                    file_path: file.path,
+                    file_type: file.mimetype,
+                    uploaded_at: new Date()
+                };
+
+                const existingTicket = await ticketService.getTicketById(ticketId);
+                if (existingTicket.attachment_id) {
+                    await ticketService.updateAttachment(existingTicket.attachment_id, attachmentData);
+                } else {
+                    const attachment = await ticketService.createAttachment(attachmentData);
+                    ticketData.attachment_id = attachment.id;
+                }
+            }
+
+            const updatedTicket = await ticketService.updateTicket(ticketId, ticketData);
             if (!updatedTicket) {
                 return res.status(404).json({ message: 'Ticket not found' });
             }

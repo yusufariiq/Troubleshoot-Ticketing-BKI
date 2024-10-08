@@ -20,6 +20,18 @@ class TicketService {
     async deleteTicket(id) {
         return await ticketRepository.deleteTicket(id);
     }
+    
+    async createAttachment(attachmentData) {
+        return await ticketRepository.createAttachment(attachmentData);
+    }
+
+    async updateAttachment(id, attachmentData) {
+        return await ticketRepository.updateAttachment(id, attachmentData);
+    }
+
+    async deleteAttachment(id) {
+        return await ticketRepository.deleteAttachment(id);
+    }
 }
 
 module.exports = new TicketService();

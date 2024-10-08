@@ -28,6 +28,7 @@ import Troubleshoot from '../interface/Troubleshoot';
 import Modal from './Modal';
 
 const API_URL = import.meta.env.VITE_API_URL
+axios.defaults.baseURL = API_URL
 
 export default function Table() {
     const [data, setData] = useState<Troubleshoot[]>([]);
@@ -94,36 +95,34 @@ export default function Table() {
         fetchData();
     }, []);
 
-    const handleSubmit = async (values: Troubleshoot) => {
+    const handleSubmit = async (formData: FormData) => {
+        debugger;
         try {
-            const formData = new FormData();
-            Object.keys(values).forEach(key => {
-                if (key === 'attachment' && values[key] instanceof File) {
-                    formData.append('attachment', values[key]);
-                } else {
-                    formData.append(key, values[key]?.toString() || '');
-                }
-            });
+            const isEditing = formData.get('ticket_id') !== '0';
+            const url = isEditing 
+                ? `${API_URL}/tickets/${formData.get('ticket_id')}` 
+                : `${API_URL}/tickets`;
+            
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            };
 
-            if (editingTicket) {
-                // Update existing ticket
-                await axios.put(`${API_URL}/tickets/${editingTicket.ticket_id}`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
+            if (isEditing) {
+                await axios.put(url, formData, config);
             } else {
-                // Create new ticket
-                await axios.post(`${API_URL}/tickets`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
+                await axios.post(url, formData, config);
             }
-            handleClose();
-            fetchData(); // Refresh the data
-        } catch (error) {
-            console.error('Error saving ticket:', error);
+
+            await fetchData();
+        } catch (error: any) {
+            console.error('Error submitting ticket:', error);
+            if (error.response) {
+              console.error('Response data:', error.response.data);
+              console.error('Response status:', error.response.status);
+            }
+            throw error;
         }
     };
 
@@ -136,7 +135,7 @@ export default function Table() {
         if (ticketToDelete) {
             try {
                 await axios.delete(`${API_URL}/tickets/${ticketToDelete}`);
-                fetchData(); // Refresh the data
+                fetchData(); 
             } catch (error) {
                 console.error('Error deleting ticket:', error);
             }
@@ -195,7 +194,13 @@ export default function Table() {
                 <Modal 
                     open={open}
                     onClose={handleClose}
-                    onSubmit={handleSubmit}
+                    onSubmit={async (formData) => {
+                        try {
+                          await handleSubmit(formData);
+                        } catch (error) {
+                          console.error("Error in Modal onSubmit:", error);
+                        }
+                      }}
                     editingTicket={editingTicket}
                 />
                 <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
