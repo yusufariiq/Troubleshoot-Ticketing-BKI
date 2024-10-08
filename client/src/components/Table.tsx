@@ -41,6 +41,42 @@ export default function Table() {
         setOpen(true);
     };
 
+    const handleSubmit = async (values: Troubleshoot) => {
+        try {
+            const formData = new FormData();
+            
+            // Handle all fields except attachment
+            (Object.keys(values) as Array<keyof Troubleshoot>).forEach(key => {
+                if (key !== 'attachment' && values[key] !== undefined && values[key] !== null) {
+                    formData.append(key, values[key]!.toString());
+                }
+            });
+            
+            // Handle attachment separately
+            if (values.attachment instanceof File) {
+                formData.append('attachment', values.attachment);
+            }
+
+            if (editingTicket) {
+                await axios.put(`${API_URL}/tickets/${editingTicket.ticket_id}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            } else {
+                await axios.post(`${API_URL}/tickets`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            }
+            handleClose();
+            fetchData();
+        } catch (error) {
+            console.error('Error saving ticket:', error);
+        }
+    };
+
     const handleClose = () => {
         setOpen(false);
         setEditingTicket(null);
@@ -54,7 +90,7 @@ export default function Table() {
             width: 200,
             renderCell: (params) => (
                 <Box>
-                    <Button onClick={() => handleOpen(params.row)}>
+                    <Button onClick={() => handleOpen(params.row as Troubleshoot)}>
                         <EditIcon />
                     </Button>
                     <Button onClick={() => handleDeleteClick(params.row.ticket_id)}>
@@ -78,11 +114,9 @@ export default function Table() {
     const fetchData = async () => {
         try {
             const response = await axios.get<Troubleshoot[]>(`${API_URL}/tickets`);
-            const fetchedData = response.data.map((item: any) => ({
-                ...item,
-                ...Object.fromEntries(
-                    Object.entries(item).map(([key, value]) => [key, value ?? '-'])
-                ),
+            const fetchedData = response.data.map(ticket => ({
+                ...ticket,
+                attachment: null // ensure each ticket has an attachment field, even if null
             }));
             setData(fetchedData);
         } catch (error) {
@@ -94,39 +128,6 @@ export default function Table() {
         fetchData();
     }, []);
 
-    const handleSubmit = async (values: Troubleshoot) => {
-        try {
-            const formData = new FormData();
-            Object.keys(values).forEach(key => {
-                if (key === 'attachment' && values[key] instanceof File) {
-                    formData.append('attachment', values[key]);
-                } else {
-                    formData.append(key, values[key]?.toString() || '');
-                }
-            });
-
-            if (editingTicket) {
-                // Update existing ticket
-                await axios.put(`${API_URL}/tickets/${editingTicket.ticket_id}`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-            } else {
-                // Create new ticket
-                await axios.post(`${API_URL}/tickets`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-            }
-            handleClose();
-            fetchData(); // Refresh the data
-        } catch (error) {
-            console.error('Error saving ticket:', error);
-        }
-    };
-
     const handleDeleteClick = (ticketId: number) => {
         setTicketToDelete(ticketId);
         setDeleteDialogOpen(true);
@@ -136,7 +137,7 @@ export default function Table() {
         if (ticketToDelete) {
             try {
                 await axios.delete(`${API_URL}/tickets/${ticketToDelete}`);
-                fetchData(); // Refresh the data
+                fetchData();
             } catch (error) {
                 console.error('Error deleting ticket:', error);
             }

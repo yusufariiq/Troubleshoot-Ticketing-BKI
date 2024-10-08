@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import * as Yup from 'yup';
 import { Formik, Form, Field } from 'formik';
@@ -41,50 +41,62 @@ interface TicketFormModalProps {
     open: boolean;
     onClose: () => void;
     onSubmit: (values: Troubleshoot) => void;
+    editingTIcket: Troubleshoot | null;
 }
 
-const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit }) => {
+const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit, editingTicket }) => {
   const [attachment, setAttachment] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<string | null>(null);
 
   
-  const initialValues: Troubleshoot = {
-      ticket_id: 0,
-      title: '',
-      description: '',
-      priority: 'Low',
-      status: 'Open',
-      reporter: '',
-      assignee: '',
-      date_created: format(new Date(), 'yyyy-MM-dd'),
-      last_updated: format(new Date(), 'yyyy-MM-dd'),
-      category: '',
-      attachment_id: null
-   };
+  const initialValues: Troubleshoot = editingTicket || {
+    ticket_id: 0,
+    title: '',
+    description: '',
+    priority: 'Low',
+    status: 'Open',
+    reporter: '',
+    assignee: '',
+    date_created: format(new Date(), 'yyyy-MM-dd'),
+    last_updated: format(new Date(), 'yyyy-MM-dd'),
+    category: '',
+    attachment_id: null
+};
+
+   useEffect(() => {
+    if (editingTicket && editingTicket.attachment_id) {
+      // Fetch attachment details if needed
+      // Set thumbnail if it's an image
+    }
+  }, [editingTicket]);
   
-   const handleSubmit = async (values: Troubleshoot, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+  const handleSubmit = async (values: Troubleshoot, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+    console.log("Submit button clicked");
+    console.log("Form values:", values);
     try {
-      const ticketResponse = await submitTroubleshootTicket(values);
-      const newTicketId = ticketResponse.ticket_id;
-
-      if (attachment) {
-        const attachmentData: Attachment = {
-          ticket_id: newTicketId,
-          file_name: attachment.name,
-          file_data: await fileToBase64(attachment),
-          file_type: attachment.type,
-          uploaded_at: format(new Date(), 'yyyy-MM-dd HH:mm:ss')
-        };
-        const attachmentResponse = await uploadAttachment(attachmentData);
-        await updateTicketAttachment(newTicketId, attachmentResponse.id);
+      const formData = new FormData();
+      Object.keys(values).forEach(key => {
+        if (key === 'attachment' && values[key] instanceof File) {
+          formData.append('attachment', values[key]);
+        } else {
+          formData.append(key, String(values[key] || ''));
+        }
+      });
+  
+      if (editingTicket) {
+        await axios.put(`${API_URL}/tickets/${editingTicket.ticket_id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        await axios.post(`${API_URL}/tickets`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
       }
-
-      onSubmit(values);
       onClose();
+      fetchData();
     } catch (error) {
-      console.error('Error submitting ticket:', error);
+      console.error('Error saving ticket:', error);
     } finally {
-      console.log('Ticket submitted successfully');
       setSubmitting(false);
     }
   };
@@ -134,11 +146,12 @@ const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Create Ticket</DialogTitle>
+      <DialogTitle>{editingTicket ? 'Edit Ticket' : 'Create Ticket'}</DialogTitle>
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
+        enableReinitialize
       >
         {({ errors, touched, setFieldValue }) => {
           const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -235,7 +248,7 @@ const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit }) => {
                             <Field
                               name="date_created"
                               component={DatePicker}
-                              inputFormat="MM/dd/yyyy"
+                              inputFormat="yyyy-MM-dd"
                               renderInput={(params: any) => <TextField {...params} fullWidth />}
                             />
                           </Grid>
