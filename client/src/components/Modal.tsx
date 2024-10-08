@@ -236,7 +236,6 @@ const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit }) => {
                               name="date_created"
                               component={DatePicker}
                               inputFormat="MM/dd/yyyy"
-                              renderInput={(params: any) => <TextField {...params} fullWidth />}
                             />
                           </Grid>
                           <Grid item xs={6}>
@@ -245,7 +244,6 @@ const Modal: React.FC<TicketFormModalProps> = ({ open, onClose, onSubmit }) => {
                               name="last_updated"
                               component={DatePicker}
                               inputFormat="MM/dd/yyyy"
-                              renderInput={(params: any) => <TextField {...params} fullWidth />}
                             />
                           </Grid>
                         </Grid>

@@ -27,7 +27,7 @@ import axios from 'axios';
 import Troubleshoot from '../interface/Troubleshoot';
 import Modal from './Modal';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function Table() {
     const [data, setData] = useState<Troubleshoot[]>([]);
