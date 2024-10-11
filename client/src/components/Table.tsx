@@ -6,7 +6,6 @@ import {
     GridToolbarFilterButton,
     GridToolbarExport,
     GridToolbarDensitySelector,
-    GridValueGetter
 } from '@mui/x-data-grid';
 
 import { 
