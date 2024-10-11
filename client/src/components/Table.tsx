@@ -5,7 +5,8 @@ import {
     GridToolbarColumnsButton,
     GridToolbarFilterButton,
     GridToolbarExport,
-    GridToolbarDensitySelector
+    GridToolbarDensitySelector,
+    GridValueGetter
 } from '@mui/x-data-grid';
 
 import { 
@@ -73,7 +74,14 @@ export default function Table() {
     };
 
     const columns: GridColDef[] = [
-        { field: 'ticket_id', headerName: 'ID', width: 50 },
+        { 
+            field: 'index', 
+            headerName: 'No', 
+            width: 50,
+            renderCell(params) {
+                return params.row.index;
+            },
+        },
         {
             field: 'actions',
             headerName: 'Aksi',
@@ -129,8 +137,9 @@ export default function Table() {
     const fetchData = async () => {
         try {
             const response = await axios.get<Troubleshoot[]>(`${API_URL}/tickets`);
-            const fetchedData = response.data.map(ticket => ({
+            const fetchedData = response.data.map((ticket, index) => ({
                 ...ticket,
+                index: index + 1,
                 attachment: null
             }));
             setData(fetchedData);
