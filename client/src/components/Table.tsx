@@ -21,10 +21,12 @@ import {
 } from '@mui/material';
 
 import { useState, useEffect } from 'react';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import axios from 'axios';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import DownloadIcon from '@mui/icons-material/Download';
+import EditIcon from '@mui/icons-material/Edit';
 import Troubleshoot from '../interface/Troubleshoot';
+import Attachment from '../interface/Attachment';
 import Modal from './Modal';
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -72,6 +74,28 @@ export default function Table() {
         setEditingTicket(null);
     };
 
+    const handleDownload = async (filename: string) => {
+        try{
+            const response = await axios.get(`${API_URL}/tickets/attachments/${filename}`, {
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.parentNode?.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error){
+            console.error('Error downloading attachment:', error);
+        }
+    }
+
     const columns: GridColDef[] = [
         { 
             field: 'index', 
@@ -84,22 +108,30 @@ export default function Table() {
         {
             field: 'actions',
             headerName: 'Aksi',
-            width: 200,
+            width: 220,
             renderCell: (params) => (
-                <Box>
-                    <Button onClick={() => handleOpen(params.row as Troubleshoot)}>
+                <>
+                    <Button onClick={() => handleOpen(params.row)}>
                         <EditIcon />
                     </Button>
                     <Button onClick={() => handleDeleteClick(params.row.ticket_id)}>
                         <DeleteForeverIcon />
                     </Button>
-                </Box>
+                    {params.row.filename && (
+                        <Button 
+                            onClick={() => handleDownload(params.row.filename)}
+                            title="Download attachment"
+                        >
+                            <DownloadIcon />
+                        </Button>
+                    )}
+                </>
             ),
         },
         { field: 'title', headerName: 'Judul', width: 200 },
         { field: 'description', headerName: 'Deskripsi', width: 400 },
         { field: 'priority', headerName: 'Level Prioritas', width: 120 },
-        { field: 'status', headerName: 'Status', width: 120 },
+        { field: 'status', headerName: 'Status', width: 120, },
         { field: 'reporter', headerName: 'Pelapor', width: 120 },
         { field: 'assignee', headerName: 'PJ', width: 120 },
         { field: 'date_created', headerName: 'Tanggal dibuat', width: 180 },
