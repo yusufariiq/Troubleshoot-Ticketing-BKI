@@ -184,6 +184,7 @@ class TicketController {
                     mime_type: req.file.mimetype,
                 };
 
+                // Hapus file lama jika ada
                 if (existingTicket.filename) {
                     const oldFilePath = path.join(uploadDir, existingTicket.filename);
                     try {
@@ -193,9 +194,7 @@ class TicketController {
                         console.log(`Error deleting old file: ${oldFilePath}`, error);
                     }
                 }
-            } else if (req.body.delete_attachment === 'true') {
-                ticketData.delete_attachment = true;
-            } else if (existingTicket.attachment_id) {
+            } else if (existingTicket.attachment_id && !req.body.remove_attachment) {
                 ticketData.attachment_id = existingTicket.attachment_id;
             }
             

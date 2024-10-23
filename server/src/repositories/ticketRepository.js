@@ -101,7 +101,7 @@ class TicketRepository {
                     `INSERT INTO ticket_attachments (filename, original_name, mime_type) 
                      VALUES ($1, $2, $3) 
                      RETURNING id`,
-                    [ticket.attachment.filename, ticket.attachmentoriginal_name, ticket.attachment.mime_type]
+                    [ticket.attachment.filename, ticket.attachment.original_name, ticket.attachment.mime_type]
                 );
                 attachment_id = attachmentResult.rows[0].id;
                 console.log('Created new attachment with ID:', attachment_id);
@@ -133,14 +133,14 @@ class TicketRepository {
             await client.query('BEGIN');
 
             let attachment_id = null;
-            let oldAttachmentId = null;
+            let odlAttachmentId = null;
 
             const currentTicket = await client.query(
                 'SELECT attachment_id FROM ticket_troubleshoot WHERE ticket_id = $1', [id]
             );
 
             if (currentTicket.rows[0]) {
-                oldAttachmentId = currentTicket.rows[0].attachment_id;
+                odlAttachmentId = currentTicket.rows[0].attachment_id;
             }
 
             if (ticket.attachment){
@@ -156,8 +156,14 @@ class TicketRepository {
                     ]
                 );
                 attachment_id = attachmentResult.rows[0].id;
-            } else if (ticket.delete_attachment) {
-                attachment_id = null;
+                console.log('Created new attachment with ID:', attachment_id);
+
+                if (odlAttachmentId){
+                    await client.query(
+                        'DELETE FROM ticket_attachments WHERE id = $1', [odlAttachmentId]
+                    );
+                    console.log(`Deleted old attachment with ID:`, odlAttachmentId);
+                }
             } else if (ticket.attachment_id) {
                 attachment_id = parseInt(ticket.attachment_id);
             }
@@ -176,13 +182,6 @@ class TicketRepository {
                     attachment_id, id
                 ]
             ); 
-
-            if (oldAttachmentId && oldAttachmentId !== attachment_id) {
-            await client.query(
-                'DELETE FROM ticket_attachments WHERE id = $1',
-                [oldAttachmentId]
-            );
-        }
 
             const updatedTicket = await client.query(
                 `SELECT t.*, a.filename, a.original_name, a.mime_type
@@ -225,25 +224,6 @@ class TicketRepository {
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;
-        } finally {
-            client.release();
-        }
-    }
-
-    async deleteAttachment(attachmentId) {
-        const client = await pool.connect();
-        try {
-            const result = await client.query(
-                'DELETE FROM ticket_attachments WHERE id = $1 RETURNING filename',
-                [attachmentId]
-            );
-            if (result.rows[0]) {
-                const filePath = path.join(uploadDir, result.rows[0].filename);
-                await fs.unlink(filePath);
-                console.log(`Deleted file: ${filePath}`);
-            }
-        } catch (error) {
-            console.error(`Error deleting attachment ${attachmentId}:`, error);
         } finally {
             client.release();
         }
