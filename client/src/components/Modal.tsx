@@ -282,7 +282,7 @@ const handleRemoveFile = (setFieldValue: any) => {
                         <>
                           <label htmlFor="raised-button-file">
                             
-                            <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', marginBottom: 1 }} />
+                            <CloudUploadIcon sx={{ fontSize: 100, color: 'primary.main', marginBottom: 1 }} />
                             <Typography variant="body1" gutterBottom>
                               Drag & Drop or Select file
                             </Typography>
